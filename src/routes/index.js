@@ -1,6 +1,9 @@
-module.exports = function(app, Price) {
+const config = require('../../config.js');
+
+
+module.exports = function(app, Price, Circulate, ton, vault) {
   // GET ALL price
-  app.get('/api/price', function(req, res){
+  app.get('/price', function(req, res){
     Price.find(function(err, prices){
       if(err) return res.status(500).send({error: 'database failure'});
       res.json(prices);
@@ -8,7 +11,7 @@ module.exports = function(app, Price) {
   });
 
   // GET latest price 
-  app.get('/api/latest/', function(req, res){
+  app.get('/price/latest', function (req, res) {
     Price.find(function(err, prices){
       if(err) return res.status(500).send({error: 'database failure'});
       const length = prices.length;
@@ -16,8 +19,18 @@ module.exports = function(app, Price) {
     })
   });
 
-  // Insert price
-  app.post('/api/price', function(req, res){
-      res.end();
+  app.get('/price/:from/:to', function(req, res) {
+    Price.find(function(err, prices) {
+
+    })
+  });
+
+  app.get('/circulatedcoins', function (req, res) {
+    Circulate.find(function(err, circulates){
+      if(err) return res.status(500).send({error: 'database failure'});
+      const length = circulates.length;
+      res.json(circulates[length - 1].circulateSupply);
+    })
   });
 }
+    
