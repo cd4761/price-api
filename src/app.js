@@ -48,7 +48,7 @@ cron.schedule('0,30 * * * * *', () => {
   getPrice();
 });
 
-cron.schedule('* * * * *', () => {
+cron.schedule('* * * *', () => {
   getCircultate();
 });
 
