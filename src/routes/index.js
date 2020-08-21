@@ -20,9 +20,17 @@ module.exports = function(app, Price, Circulate, ton, vault) {
   });
 
   app.get('/price/:from/:to', function(req, res) {
-    Price.find(function(err, prices) {
-
+    Price.find({ 
+      "timestamp": { 
+        $gte: req.params.from,
+        $lte: req.params.to
+      } 
+    }).then((prices) => {
+      if (!prices) return res.status(404).send({ err: 'Price info not found' });
+      res.json(prices);
     })
+    .catch(err => res.status(500).send(err));
+
   });
 
   app.get('/circulatedcoins', function (req, res) {
