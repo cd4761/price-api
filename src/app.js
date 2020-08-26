@@ -8,6 +8,7 @@ const axios = require('axios');
 const cors = require('cors');
 
 const Price = require('./models/price.js');
+const krwPrice = require('./models/krw.js');
 const Circulate = require('./models/circulate.js');
 
 const config = require('../config.js');
@@ -42,20 +43,32 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const port = process.env.PORT || 4500;
 
-const router = require('./routes')(app, Price, Circulate);
+const router = require('./routes')(app, krwPrice, Price, Circulate);
 
 cron.schedule('0,30 * * * * *', () => {
-  getPrice();
+  getBTCPrice();
+  getKRWPrice();
 });
 
 cron.schedule('0 * * * *', () => {
   getCircultate();
 });
 
-const getPrice = async () => {
+const getBTCPrice = async () => {
   const rawData = await axios.get('https://api.upbit.com/v1/ticker?markets=BTC-TON');
   const data = await Promise.all([rawData.data[0]]);
   let price = new Price(data[0]);
+
+  price.save(function (err, prices) {
+    if (err) return console.error(err);
+    console.log(prices.market + " saved to price collection.");
+  })
+};
+
+const getKRWPrice = async () => {
+  const rawData = await axios.get('https://api.upbit.com/v1/ticker?markets=KRW-TON');
+  const data = await Promise.all([rawData.data[0]]);
+  let price = new krwPrice(data[0]);
 
   price.save(function (err, prices) {
     if (err) return console.error(err);
