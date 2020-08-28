@@ -1,7 +1,7 @@
 const config = require('../../config.js');
 
 
-module.exports = function(app, krwPrice, Price, Circulate) {
+module.exports = function(app, krwPrice, Price, Circulate, Total) {
   // GET BTC pair price
   // GET ALL price
   app.get('/btc/price', function(req, res){
@@ -68,6 +68,14 @@ module.exports = function(app, krwPrice, Price, Circulate) {
       if(err) return res.status(500).send({error: 'database failure'});
       const length = circulates.length;
       res.json(circulates[length - 1].circulateSupply);
+    })
+  });
+
+  app.get('/totalsupply', function (req, res) {
+    Total.find(function(err, totals){
+      if(err) return res.status(500).send({error: 'database failure'});
+      const length = totals.length;
+      res.json(totals[length - 1].totalSupply);
     })
   });
 }

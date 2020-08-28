@@ -10,6 +10,7 @@ const cors = require('cors');
 const Price = require('./models/price.js');
 const krwPrice = require('./models/krw.js');
 const Circulate = require('./models/circulate.js');
+const Total = require('./models/total.js');
 
 const config = require('../config.js');
 
@@ -43,7 +44,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const port = process.env.PORT || 8080;
 
-const router = require('./routes')(app, krwPrice, Price, Circulate);
+const router = require('./routes')(app, krwPrice, Price, Circulate, Total);
 
 cron.schedule('0,30 * * * * *', () => {
   getBTCPrice();
@@ -51,7 +52,7 @@ cron.schedule('0,30 * * * * *', () => {
 });
 
 cron.schedule('0 * * * *', () => {
-  getCircultate();
+  getCoins();
 });
 
 const getBTCPrice = async () => {
@@ -76,16 +77,21 @@ const getKRWPrice = async () => {
   })
 };
 
-const getCircultate = async () => {
+const getCoins = async () => {
   const totalBalance = await ton.methods.totalSupply().call();
   const vaultBalance = await ton.methods.balanceOf(config.mainnet.TONVault).call();
   const bnTot = new BN(totalBalance);
   const bnVault = new BN(vaultBalance);
   const balance = bnTot.sub(bnVault)
   const etherValue = Web3.utils.fromWei(balance, 'ether');
+  const totalVaule = Web3.utils.fromWei(bnTot, 'wei');
   let circulate = new Circulate({
     'circulateSupply': Number(etherValue)
-  })
+  });
+
+  let total = new Total({
+    'totalSupply': Number(totalVaule)
+  });
   
   circulate.save(function (err, circulates) {
     if (err) return console.error(err);
