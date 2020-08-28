@@ -15,3 +15,4 @@ $ node app.js
 | /krw/price/latest         | GET    | 최신 krw pair price 데이터 조회        |
 | /krw/price/:from/:to      | GET    | 기간 내 krw pair price 데이터 조회     |
 | /circulatedcoins          | GET    | 유통되는 TON 갯수 확인        |
+| /totalsupply              | GET    | 전체 TON 갯수 확인        |
