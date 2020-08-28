@@ -51,6 +51,7 @@ cron.schedule('0,30 * * * * *', () => {
   getKRWPrice();
 });
 
+// for test 0 * * * *
 cron.schedule('0 * * * *', () => {
   getCoins();
 });
@@ -84,7 +85,7 @@ const getCoins = async () => {
   const bnVault = new BN(vaultBalance);
   const balance = bnTot.sub(bnVault)
   const etherValue = Web3.utils.fromWei(balance, 'ether');
-  const totalVaule = Web3.utils.fromWei(bnTot, 'wei');
+  const totalVaule = Web3.utils.fromWei(bnTot, 'ether');
   let circulate = new Circulate({
     'circulateSupply': Number(etherValue)
   });
@@ -96,6 +97,11 @@ const getCoins = async () => {
   circulate.save(function (err, circulates) {
     if (err) return console.error(err);
     console.log("Current circulating supply is " + circulates.circulateSupply);
+  })
+
+  total.save(function (err, totals) {
+    if (err) return console.error(err);
+    console.log("Current circulating supply is " + totals.totalSupply);
   })
 }
 
