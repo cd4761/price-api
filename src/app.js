@@ -20,7 +20,17 @@ const { BN } = require('web3-utils');
 
 Contracts.setProvider(config.mainnet.ws);
 
-const TONABI = require('./contracts/TON.json');
+const TONABI = require( './contracts/TON.json');
+const WTONABI = require( './contracts/WTON.json');
+const DepositManagerABI = require( './contracts/DepositManager.json');
+const Layer2RegistryABI = require( './contracts/Layer2Registry.json');
+const SeigManagerABI = require( './contracts/SeigManager.json');
+const PowerTONABI = require( './contracts/PowerTON.json');
+
+const seigManager = new Contracts(SeigManagerABI, config.mainnet.SeigManager);
+
+let managers;
+
 
 const ton = new Contracts(TONABI, config.mainnet.TON);
 
@@ -44,7 +54,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const port = process.env.PORT || 8080;
 
-const router = require('./routes')(app, krwPrice, Price, Circulate, Total);
+const router = require('./routes')(app, krwPrice, Price, Circulate, Total, seigManager);
 
 cron.schedule('0,30 * * * * *', () => {
   getBTCPrice();
@@ -105,6 +115,30 @@ const getCoins = async () => {
   })
 }
 
-const server = app.listen(port, function(){
+const setManagers = async () => {
+  await axios.get('https://dashboard-api.tokamak.network/managers')
+    .then(response => {
+      // console.log(response.data);
+      managers = response.data;
+      const managerABIs = {
+        TONABI,
+        WTONABI,
+        DepositManagerABI,
+        Layer2RegistryABI,
+        SeigManagerABI,
+        PowerTONABI,
+      };
+
+      for (const [name, address] of Object.entries(managers)) {
+        const abi = managerABIs[`${name}ABI`];
+        managers[name] = new Contracts(abi, address);
+      }
+    });
+}
+
+const server = app.listen(port, async function(){
  console.log("Express server has started on port " + port)
+//  await Promise.all([setManagers()]);
+//  console.log(managers);
 });
+
