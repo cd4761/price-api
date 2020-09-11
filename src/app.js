@@ -52,7 +52,7 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 4500;
 
 const router = require('./routes')(app, krwPrice, Price, Circulate, Total, seigManager);
 
@@ -138,7 +138,4 @@ const setManagers = async () => {
 
 const server = app.listen(port, async function(){
  console.log("Express server has started on port " + port)
-//  await Promise.all([setManagers()]);
-//  console.log(managers);
 });
-
