@@ -22,7 +22,7 @@ Contracts.setProvider(config.mainnet.ws);
 
 const WTON_UNIT = 'ray';
 
-module.exports = async function(app, krwPrice, Price, Circulate, Total, seigManager) {
+module.exports = async function(app, krwPrice, Price, Circulate, Total, ton, seigManager) {
   // GET BTC pair price
   // GET ALL price
   app.get('/btc/price', function(req, res){
@@ -84,20 +84,21 @@ module.exports = async function(app, krwPrice, Price, Circulate, Total, seigMana
     .catch(err => res.status(500).send(err));
   });
 
-  app.get('/circulatedcoins', function (req, res) {
-    Circulate.find(function(err, circulates){
-      if(err) return res.status(500).send({error: 'database failure'});
-      const length = circulates.length;
-      res.json(circulates[length - 1].circulateSupply);
-    })
+  app.get('/circulatedcoins', async function (req, res) {
+    const totalBalance = await ton.methods.totalSupply().call();
+    const vaultBalance = await ton.methods.balanceOf(config.mainnet.TONVault).call();
+    const bnTot = new BN(totalBalance);
+    const bnVault = new BN(vaultBalance);
+    const balance = bnTot.sub(bnVault)
+    const etherValue = Web3.utils.fromWei(balance, 'ether');
+    res.json(Number(etherValue));
   });
 
-  app.get('/totalsupply', function (req, res) {
-    Total.find(function(err, totals){
-      if(err) return res.status(500).send({error: 'database failure'});
-      const length = totals.length;
-      res.json(totals[length - 1].totalSupply);
-    })
+  app.get('/totalsupply', async function (req, res) {
+    const totalBalance = await ton.methods.totalSupply().call();
+    const bnTot = new BN(totalBalance);
+    const totalVaule = Web3.utils.fromWei(bnTot, 'ether');
+    res.json(Number(totalVaule));
   });
 
   app.get('/staking/current', async (req, res) => {

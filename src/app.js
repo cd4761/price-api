@@ -54,16 +54,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const port = process.env.PORT || 4500;
 
-const router = require('./routes')(app, krwPrice, Price, Circulate, Total, seigManager);
+const router = require('./routes')(app, krwPrice, Price, Circulate, Total, ton, seigManager);
 
 cron.schedule('0,30 * * * * *', () => {
   getBTCPrice();
   getKRWPrice();
-});
-
-// for test 0 * * * *
-cron.schedule('0 * * * *', () => {
-  getCoins();
 });
 
 const getBTCPrice = async () => {
@@ -87,33 +82,6 @@ const getKRWPrice = async () => {
     console.log(prices.market + " saved to price collection.");
   })
 };
-
-const getCoins = async () => {
-  const totalBalance = await ton.methods.totalSupply().call();
-  const vaultBalance = await ton.methods.balanceOf(config.mainnet.TONVault).call();
-  const bnTot = new BN(totalBalance);
-  const bnVault = new BN(vaultBalance);
-  const balance = bnTot.sub(bnVault)
-  const etherValue = Web3.utils.fromWei(balance, 'ether');
-  const totalVaule = Web3.utils.fromWei(bnTot, 'ether');
-  let circulate = new Circulate({
-    'circulateSupply': Number(etherValue)
-  });
-
-  let total = new Total({
-    'totalSupply': Number(totalVaule)
-  });
-  
-  circulate.save(function (err, circulates) {
-    if (err) return console.error(err);
-    console.log("Current circulating supply is " + circulates.circulateSupply);
-  })
-
-  total.save(function (err, totals) {
-    if (err) return console.error(err);
-    console.log("Current circulating supply is " + totals.totalSupply);
-  })
-}
 
 const setManagers = async () => {
   await axios.get('https://dashboard-api.tokamak.network/managers')
