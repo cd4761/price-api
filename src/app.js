@@ -86,7 +86,6 @@ const getKRWPrice = async () => {
 const setManagers = async () => {
   await axios.get('https://dashboard-api.tokamak.network/managers')
     .then(response => {
-      // console.log(response.data);
       managers = response.data;
       const managerABIs = {
         TONABI,

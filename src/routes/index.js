@@ -103,12 +103,10 @@ module.exports = async function(app, krwPrice, Price, Circulate, Total, ton, sei
 
   app.get('/staking/current', async (req, res) => {
     await Promise.all([getOperators()]);
-    // console.log(operators);
     let totalStake = 0;
     for (let i=0; i<operators.length; i++) {
       totalStake = totalStake + operators[i].totalStaked._amount.toNumber();
     }
-    console.log(seigManager);
     res.json(totalStake);
   });
 
@@ -121,8 +119,6 @@ const getOperators = async () => {
   await axios.get('https://dashboard-api.tokamak.network/operators')
     .then(async response => {
       await Promise.all([setManagers()]);
-      // console.log(managers);
-      const DepositManager = managers.DepositManager;
       const SeigManager = managers.SeigManager;
       const Tot = new Contracts(
         AutoRefactorCoinageABI, await SeigManager.methods.tot().call());
@@ -149,7 +145,6 @@ const getOperators = async () => {
 const setManagers = async () => {
   await axios.get('https://dashboard-api.tokamak.network/managers')
     .then(response => {
-      // console.log(response.data);
       managers = response.data;
       const managerABIs = {
         TONABI,
@@ -164,7 +159,7 @@ const setManagers = async () => {
         const abi = managerABIs[`${name}ABI`];
         managers[name] = new Contracts(abi, address);
       }
-      // console.log(managers.SeigManager);
+
       return managers;
     });
 }
