@@ -128,26 +128,31 @@ const getOperators = async () => {
   await axios.get('https://dashboard-api.tokamak.network/operators')
     .then(async response => {
       await Promise.all([setManagers()]);
+
       const SeigManager = managers.SeigManager;
-      const Tot = new Contracts(
-        AutoRefactorCoinageABI, await SeigManager.methods.tot().call());
+      const l2Registry = managers.Layer2Registry;
+
+      const operatorsFromDB = response.data;
+      for (let i=0; i < operatorsFromDB.length; i++) {
+        if (!await l2Registry.methods.layer2s(operatorsFromDB[i].layer2).call()) {
+          operatorsFromDB.splice(i, 1);
+        }
+      }
       
       const operatorsFromLayer2 = await Promise.all(
-        response.data.map(async operatorFromLayer2 => {
+        operatorsFromDB.map(async operatorFromLayer2 => {
           const layer2 = operatorFromLayer2.layer2;
-          const Layer2 = new Contracts(Layer2ABI, layer2);
+
           const Coinage = new Contracts(
             AutoRefactorCoinageABI, await SeigManager.methods.coinages(layer2).call());
           
           const [totalStaked] = await Promise.all([Coinage.methods.totalSupply().call()])
-
           operatorFromLayer2.totalStaked = _WTON(totalStaked, WTON_UNIT);
 
           return operatorFromLayer2
         })
       );
       operators = operatorsFromLayer2;
-      
     })
 }
 
