@@ -9,28 +9,27 @@ const cors = require('cors');
 
 const Price = require('./models/price.js');
 const krwPrice = require('./models/krw.js');
-const Circulate = require('./models/circulate.js');
-const Total = require('./models/total.js');
 
 const config = require('../config.js');
 
 const Web3 = require('web3');
 const Contracts = require('web3-eth-contract');
 const { BN } = require('web3-utils');
+const { calculateExpectedSeig } = require('tokamak-staking-lib');
 
 Contracts.setProvider(config.mainnet.ws);
 
-const TONABI = require( './contracts/TON.json');
-const WTONABI = require( './contracts/WTON.json');
-const DepositManagerABI = require( './contracts/DepositManager.json');
-const Layer2RegistryABI = require( './contracts/Layer2Registry.json');
-const SeigManagerABI = require( './contracts/SeigManager.json');
-const PowerTONABI = require( './contracts/PowerTON.json');
+const TONABI = require('./contracts/TON.json');
+const WTONABI = require('./contracts/WTON.json');
+const DepositManagerABI = require('./contracts/DepositManager.json');
+const Layer2RegistryABI = require('./contracts/Layer2Registry.json');
+const SeigManagerABI = require('./contracts/SeigManager.json');
+const PowerTONABI = require('./contracts/PowerTON.json');
+const AutoRefactorCoinageABI = require('./contracts/AutoRefactorCoinage.json');
 
 const seigManager = new Contracts(SeigManagerABI, config.mainnet.SeigManager);
-
+// const Tot = new Contracts(AutoRefactorCoinageABI, seigManager.methods.tot().call());
 let managers;
-
 
 const ton = new Contracts(TONABI, config.mainnet.TON);
 
@@ -54,7 +53,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const port = process.env.PORT || 4500;
 
-const router = require('./routes')(app, krwPrice, Price, Circulate, Total, ton, seigManager);
+const router = require('./routes')(app, krwPrice, Price, ton, seigManager);
 
 cron.schedule('0,30 * * * * *', () => {
   getBTCPrice();
@@ -82,6 +81,25 @@ const getKRWPrice = async () => {
     console.log(prices.market + " saved to price collection.");
   })
 };
+//const tos = _WTON(tonTotalSupply, TON_UNIT)
+// .plus(_WTON(totTotalSupply, WTON_UNIT))
+// .minus(_WTON(tonBalanceOfWTON, TON_UNIT));
+// 10863985
+// 10865101
+// 4349329087368301060902778501239
+// 1213804057214259028802978341880929
+// 50023183.566028304
+// 400000000000000000000000000
+// Ray:   1000000000000000000000000000
+//        6498456070843226921998727561
+// const result = calculateExpectedSeig(
+//   new BN('10863985'),
+//   new BN('10865101'),
+//   new BN('4349329087368301060902778501239'),
+//   new BN('1213804057214259028802978341880929'),
+//   new BN('50023183566028304000000000000000000'),
+//   new BN('400000000000000000000000000'),
+// )
 
 const setManagers = async () => {
   await axios.get('https://dashboard-api.tokamak.network/managers')
