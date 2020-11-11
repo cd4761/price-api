@@ -1,7 +1,7 @@
 const config = {
   'mainnet': {
-    'provider': 'https://mainnet.infura.io/v3/3c55b12f39c549c7911f6488d8888260',
-    'ws': 'wss://mainnet.infura.io/ws/v3/3c55b12f39c549c7911f6488d8888260',
+    'provider': 'https://mainnet.infura.io/v3/34448178b25e4fbda6d80f4da62afba2',
+    'ws': 'wss://mainnet.infura.io/ws/v3/34448178b25e4fbda6d80f4da62afba2',
     'TON': '0x2be5e8c109e2197D077D13A82dAead6a9b3433C5',
     'TONVault': '0xf68C26aA86607C64b6a86dC2A987530eFd3ae941',
     "WTON":"0xc4A11aaf6ea915Ed7Ac194161d2fC9384F15bff2",

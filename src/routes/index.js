@@ -88,13 +88,27 @@ module.exports = async function(app, krwPrice, Price, ton, seigManager, l2Regist
   });
 
   app.get('/circulatedcoins', async function (req, res) {
-    const totalBalance = await ton.methods.totalSupply().call();
+    // const totalBalance = await ton.methods.totalSupply().call();
+    const addr = await seigManager.methods.tot().call();
+
+    const Tot = new Contracts(AutoRefactorCoinageABI, addr);
+    const tonTotalSupply = await ton.methods.totalSupply().call();
+    const totTotalSupply = await Tot.methods.totalSupply().call();
+    const tonBalanceOfWTON = await ton.methods.balanceOf(config.mainnet.WTON).call();
     const vaultBalance = await ton.methods.balanceOf(config.mainnet.TONVault).call();
-    const bnTot = new BN(totalBalance);
-    const bnVault = new BN(vaultBalance);
-    const balance = bnTot.sub(bnVault)
-    const etherValue = Web3.utils.fromWei(balance, 'ether');
-    res.json(Number(etherValue));
+
+    const tos = _WTON(tonTotalSupply, TON_UNIT)
+      .plus(_WTON(totTotalSupply, WTON_UNIT))
+      .minus(_WTON(tonBalanceOfWTON, TON_UNIT))
+
+    const vaultValue = Web3.utils.fromWei(vaultBalance, 'ether');
+    
+    const totalSupply = Number(tos.toBigNumber().toString())
+    const vault = Number(vaultValue);
+    
+    const circulated = totalSupply - vault;
+
+    res.json(circulated);
   });
 
   app.get('/totalsupply', async function (req, res) {
@@ -151,7 +165,7 @@ module.exports = async function(app, krwPrice, Price, ton, seigManager, l2Regist
     // console.log(stakingAmount);
     // console.log(numLayer2)
     // console.log(amount)
-    res.json(returnValue);
+    res.json(returnValue)
   })
 }
 
