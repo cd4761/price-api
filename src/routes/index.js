@@ -3,6 +3,7 @@ const axios = require('axios');
 
 const Web3 = require('web3');
 const Contracts = require('web3-eth-contract');
+const { getStakedAmount } = require('tokamak-staking-lib');
 const { BN } = require('web3-utils');
 const { createCurrency } = require('@makerdao/currency');
 
@@ -24,7 +25,7 @@ Contracts.setProvider(config.mainnet.ws);
 const TON_UNIT = 'wei';
 const WTON_UNIT = 'ray';
 
-module.exports = async function(app, krwPrice, Price, ton, seigManager) {
+module.exports = async function(app, krwPrice, Price, ton, seigManager, l2Registry) {
   // GET BTC pair price
   // GET ALL price
   app.get('/btc/price', function(req, res){
@@ -110,6 +111,7 @@ module.exports = async function(app, krwPrice, Price, ton, seigManager) {
     res.json(Number(tos.toBigNumber().toString()));
   });
 
+  // about staking
   app.get('/staking/current', async (req, res) => {
     await Promise.all([getOperators()]);
     let totalStake = 0;
@@ -119,9 +121,38 @@ module.exports = async function(app, krwPrice, Price, ton, seigManager) {
     res.json(totalStake);
   });
 
-  app.get('/staking/seigrate', async (req, res) => {
-    // seigManager.methods.
-  });
+  app.get('/staking/:account', async (req, res) => {
+    const account = req.params.account;
+    const numLayer2 = await l2Registry.methods.numLayer2s().call();
+    
+    const stakingAmount = []
+    for (i=0;i<numLayer2;i++) {
+      let op = await l2Registry.methods.layer2ByIndex(i).call()
+      let amount = await seigManager.methods.stakeOf(op, account).call();
+
+      let amountUnitInWTON = _WTON(amount, WTON_UNIT)
+      let amountUnitNumber = Number(amountUnitInWTON.toBigNumber().toString());
+      
+      if (amountUnitNumber !== 0) {
+        let amountPerOperator = {
+          layer2: op,
+          amount: amountUnitNumber
+        }
+        stakingAmount.push(amountPerOperator)
+      }
+    }
+    let tonBalance = await ton.methods.balanceOf(account).call()
+    tonBalance = Number(_WTON(tonBalance, TON_UNIT).toBigNumber().toString());
+
+    const returnValue = {
+      staking: stakingAmount,
+      tonBalance: tonBalance
+    }
+    // console.log(stakingAmount);
+    // console.log(numLayer2)
+    // console.log(amount)
+    res.json(returnValue);
+  })
 }
 
 const getOperators = async () => {

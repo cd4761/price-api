@@ -28,6 +28,7 @@ const PowerTONABI = require('./contracts/PowerTON.json');
 const AutoRefactorCoinageABI = require('./contracts/AutoRefactorCoinage.json');
 
 const seigManager = new Contracts(SeigManagerABI, config.mainnet.SeigManager);
+const l2Registry = new Contracts(Layer2RegistryABI, config.mainnet.Layer2Registry);
 // const Tot = new Contracts(AutoRefactorCoinageABI, seigManager.methods.tot().call());
 let managers;
 
@@ -53,7 +54,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const port = process.env.PORT || 4500;
 
-const router = require('./routes')(app, krwPrice, Price, ton, seigManager);
+const router = require('./routes')(app, krwPrice, Price, ton, seigManager, l2Registry);
 
 cron.schedule('0,30 * * * * *', () => {
   getBTCPrice();
